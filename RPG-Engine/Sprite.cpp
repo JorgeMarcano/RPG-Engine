@@ -20,6 +20,9 @@ Sprite::Sprite(Graphics* graph, const char* filename, int sourceX, int sourceY, 
 	_dstRect.w = width;
 	_dstRect.h = height;
 
+	_w = width;
+	_h = height;
+
 	_spriteSheet = _graphics->LoadTextureFromPNG(filename);
 }
 

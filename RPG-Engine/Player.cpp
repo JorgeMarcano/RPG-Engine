@@ -4,32 +4,47 @@ Player::Player()
 {
 }
 
-Player::Player(Graphics* graph, float initX, float initY, Input* input) :
-	AnimatedSprite(graph, "content/character/bob.png", 0, 0, 48, 64, initX, initY)
+Player::Player(Graphics* graph, int initX, int initY, Input* input, int tileW, int tileH, int screenW, int screenH) :
+	TileSprite(graph, "content/character/bob.png", 0, 0, 48, 64, initX, initY, tileW, tileH)
 {
 	_input = input;
 
 	Setup();
 
 	_moving = false;
+
+	_screenH = screenH;
+	_screenW = screenW;
 }
 
 Player::~Player()
 {
 }
 
-void Player::Update(Uint32 dt)
+void Player::Update(Uint32 dt, std::vector<TileStruct> collisionList)
 {
 	if (_moving)
 	{
 		//check when to stop moving
-		if (_input->isKeyReleased(_direction) || !_input->isKeyHeld(_direction))
+		if (_input->isKeyReleased(_CODES[_direction]) || !_input->isKeyHeld(_CODES[_direction]))
 		{
-			_moving = false;
-			ResetAnimation();
+			if ((int)(_loc.x + _dx * dt) != (int)_loc.x || (int)(_loc.y + _dy * dt) != (int)_loc.y || IsColliding(dt, collisionList))
+			{
+				_moving = false;
+				ResetAnimation();
 
-			_dy = 0;
-			_dx = 0;
+				if (_dx > 0 || _dy > 0)
+				{
+					_loc.x += _dx * dt;
+					_loc.y += _dy * dt;
+				}
+
+				_loc.x = (int)_loc.x;
+				_loc.y = (int)_loc.y;
+
+				_dy = 0;
+				_dx = 0;
+			}
 		}
 	}
 	else
@@ -39,31 +54,33 @@ void Player::Update(Uint32 dt)
 		{
 			if (_input->isKeyHeld(_CODES[i])) 
 			{
-				_moving = true;
+				_dy = ((i + 1) % 2) * TILESPERMILLI;
+				_dy = i < 2 ? -_dy : _dy;
+				_dx = (i % 2) * TILESPERMILLI;
+				_dx = i > 2 ? -_dx : _dx;
 
 				StartAnimation(_ANIMS[i]);
 
-				_direction = _CODES[i];
+				_direction = i;
 
-				_dy = ((i + 1) % 2) * PIXELPERMILLI;
-				_dy = i < 2 ? -_dy : _dy;
-				_dx = (i % 2) * PIXELPERMILLI;
-				_dx = i > 2 ? -_dx : _dx;
+				_moving = true;
 
 				break;
 			}
 		}
 	}
 
-	_x += dt * _dx * (1 + _input->isKeyHeld(RUN));
-	_y += dt * _dy * (1 + _input->isKeyHeld(RUN));
+	//_maxVel = _input->isKeyHeld(RUN) ? RUNSPEED : SPEED;
 
-	AnimatedSprite::Update(dt);
+	TileStruct offset;
+	CalcOffset(&offset);
+
+	TileSprite::Update(dt, collisionList, offset);
 }
 
 void Player::Draw()
 {
-	AnimatedSprite::Draw(_x, _y);
+	TileSprite::Draw();
 }
 
 void Player::Setup()
@@ -78,4 +95,12 @@ void Player::GetMovement(float* dx, float* dy)
 {
 	*dx = _dx;
 	*dy = _dy;
+}
+
+const void Player::CalcOffset(TileStruct* offset) const
+{
+	GetLoc(offset);
+
+	offset->x -= (0.5 * _screenW / _tileW) + 0.5;
+	offset->y -= (0.5 * _screenH / _tileH) + 0.5;
 }

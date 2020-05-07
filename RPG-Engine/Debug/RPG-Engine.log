@@ -1,7 +1,2 @@
 ﻿  Game.cpp
-  Player.cpp
-D:\Users\Jorge\Desktop\RPG Maker\RPG-Engine\RPG-Engine\Player.cpp(66,27): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-D:\Users\Jorge\Desktop\RPG Maker\RPG-Engine\RPG-Engine\Player.cpp(66,23): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-  main.cpp
-  Generating Code...
   RPG-Engine.vcxproj -> D:\Users\Jorge\Desktop\RPG Maker\RPG-Engine\RPG-Engine\Debug\RPG-Engine.exe

@@ -21,6 +21,9 @@ protected:
 	float _dx;
 	float _dy;
 
+	int _w;
+	int _h;
+
 public:
 
 	Sprite();

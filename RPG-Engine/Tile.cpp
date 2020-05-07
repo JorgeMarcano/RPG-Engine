@@ -15,8 +15,8 @@ Tile::Tile(SDL_Texture* texture, Graphics* graphics, int w, int h, int tsX, int 
 	_tsPosX = tsX;
 	_tsPosY = tsY;
 
-	_locX = x;
-	_locY = y;
+	_loc.x = x;
+	_loc.y = y;
 
 	_dstRect.x = x * w;
 	_dstRect.y = y * h;
@@ -33,10 +33,10 @@ Tile::~Tile()
 {
 }
 
-void Tile::Update(Uint32 dt)
+void Tile::Update(Uint32 dt, TileStruct offset)
 {
-	_dstRect.x = _locX * _width;
-	_dstRect.y = _locY * _height;
+	_dstRect.x = (_loc.x - offset.x) * _width;
+	_dstRect.y = (_loc.y - offset.y) * _height;
 
 	_srcRect.x = _tsPosX * _width;
 	_srcRect.y = _tsPosY * _height;

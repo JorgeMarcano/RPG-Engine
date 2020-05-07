@@ -22,7 +22,6 @@ private:
 	Graphics* _graphics;
 	Input* _inputs;
 
-	Player* _player;
 	Level* _level;
 
 public:

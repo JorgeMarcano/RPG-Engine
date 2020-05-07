@@ -2,8 +2,7 @@
 
 void Game::GameLoop()
 {
-	_player = new Player(_graphics, 100 , 100, _inputs);
-	_level = new Level("1", 100, 100, _graphics, _inputs);
+	_level = new Level("1", 6, 12, _graphics, _inputs, WIDTH, HEIGHT);
 
 	SDL_Event event;
 
@@ -39,10 +38,13 @@ void Game::GameLoop()
 
 		currentTime = SDL_GetTicks();
 		currentFrameDuration = currentTime - lastUpdateTime;
-		lastUpdateTime = currentTime;
+		if (currentFrameDuration > 8)
+		{
+			lastUpdateTime = currentTime;
 
-		Update(currentFrameDuration);
-		Draw();		
+			Update(currentFrameDuration);
+			Draw();
+		}
 	}
 }
 
@@ -51,7 +53,6 @@ void Game::Draw()
 	_graphics->ClearWindow();
 
 	_level->Draw();
-	_player->Draw();
 
 	_graphics->UpdateWindow();
 }
@@ -59,7 +60,13 @@ void Game::Draw()
 void Game::Update(Uint32 dt)
 {
 	_level->Update(dt);
-	_player->Update(dt);
+
+	Level* newLvl = _level->checkExits(dt);
+	if (newLvl != NULL)
+	{
+		_level = newLvl;
+		_level->Update(dt);
+	}
 }
 
 Game::Game()
@@ -67,8 +74,6 @@ Game::Game()
 	_graphics = new Graphics();
 
 	_inputs = new Input();
-
-	_player = NULL;
 
 	if (_graphics->Setup("Game", HEIGHT, WIDTH) == EXIT_SUCCESS)
 		GameLoop();

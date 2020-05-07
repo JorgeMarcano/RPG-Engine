@@ -56,8 +56,49 @@ void Level::LoadMap()
 	int yts;
 	int tsH;
 	int tsW;
+	TileStruct* tileStruct;
 	while (layersNode)
 	{
+		//check to see if it is a collision layer
+		if (layersNode->Attribute("name") != NULL)
+		{
+			std::stringstream ss;
+			ss << layersNode->Attribute("name");
+			if (ss.str()._Equal("collision"))
+			{
+				//parse but save in collision instead;
+				dataNode = layersNode->FirstChildElement("data");
+				while (dataNode)
+				{
+					tileNode = dataNode->FirstChildElement("tile");
+					tileCount = 0;
+					while (tileNode)
+					{
+						//if gid is 0, do not consider
+
+						if (tileNode->QueryIntAttribute("gid", &gid) == XML_SUCCESS && gid != 0) {
+
+							tileStruct = new TileStruct;
+							tileStruct->x = tileCount % _width;
+							tileStruct->y = yPos = tileCount / _width;
+
+							_collisionList.push_back(*tileStruct);
+						}
+
+						tileCount++;
+
+						tileNode = tileNode->NextSiblingElement("tile");
+					}
+
+					dataNode = dataNode->NextSiblingElement("data");
+				}
+
+				layersNode = layersNode->NextSiblingElement("layer");
+				continue;
+			}
+		}
+
+		//save as a layer to render
 		layer = new Layer();
 
 		layersNode->QueryIntAttribute("height", &(layer->height));
@@ -108,13 +149,49 @@ void Level::LoadMap()
 
 		layersNode = layersNode->NextSiblingElement("layer");
 	}
+
+	XMLElement* exitObjGrpNode = mapNode->FirstChildElement("objectgroup");
+	std::string name;
+	Exit* tempExit;
+	if (exitObjGrpNode)
+	{
+		XMLElement* exitObjNode = exitObjGrpNode->FirstChildElement("object");
+		while (exitObjNode)
+		{
+			tempExit = new Exit;
+
+			std::stringstream ss;
+			ss << exitObjNode->Attribute("name");
+
+			//get the map name
+			std::getline(ss, tempExit->mapName, ',');
+			//get spawnX
+			std::getline(ss, name, ',');
+			tempExit->spawnX = std::stoi(name);
+			//get spawnY
+			std::getline(ss, name, ',');
+			tempExit->spawnY = std::stoi(name);
+
+			_exitInfos.push_back(*tempExit);
+
+			tileStruct = new TileStruct;
+			exitObjNode->QueryIntAttribute("x", &xPos);
+			exitObjNode->QueryIntAttribute("y", &yPos);
+			tileStruct->x = (int)(xPos / _tileWidth);
+			tileStruct->y = (int)(yPos / _tileHeight);
+
+			_exitTiles.push_back(*tileStruct);
+
+			exitObjNode = exitObjNode->NextSiblingElement("object");
+		}
+	}
 }
 
 Level::Level()
 {
 }
 
-Level::Level(std::string lvlName, float playerX, float playerY, Graphics* graph, Input* input)
+Level::Level(std::string lvlName, float playerX, float playerY, Graphics* graph, Input* input, int screenW, int screenH)
 {
 	_lvlName = lvlName;
 	_spawnX = playerX;
@@ -125,7 +202,12 @@ Level::Level(std::string lvlName, float playerX, float playerY, Graphics* graph,
 	_width = 0;
 	_height = 0;
 
+	_screenH = screenH;
+	_screenW = screenW;
+
 	LoadMap();
+
+	_player = new Player(_graphics, _spawnX, _spawnY, _input, _tileWidth, _tileHeight, _screenW, _screenH);
 }
 
 Level::~Level()
@@ -134,26 +216,67 @@ Level::~Level()
 
 void Level::Update(Uint32 dt)
 {
-	Layer currLayer;
+	_player->Update(dt, _collisionList);
+
+	TileStruct offset;
+	_player->CalcOffset(&offset);
+
 	for (int i = 0; i < _layers.size(); i++)
 	{
-		currLayer = _layers[i];
-		for (int j = 0; j < currLayer.tileList.size(); j++)
+		for (int j = 0; j < _layers[i].tileList.size(); j++)
 		{
-			currLayer.tileList[j].Update(dt);
+			_layers[i].tileList[j].Update(dt, offset);
 		}
 	}
 }
 
 void Level::Draw()
 {
-	//_graphics->DrawBlitOnWin(_bgTexture, NULL, NULL);
 
-	for (int i = 0; i < _layers.size(); i++)
+	//3 layers, floor (at 0), botObj (at 1) and topObj (at 2)
+	//player is drawn between botObj and topObj
+
+	//draw floor
+
+	for (int j = 0; j < _layers[0].tileList.size(); j++)
 	{
-		for (int j = 0; j < _layers[i].tileList.size(); j++)
+		_layers[0].tileList[j].Draw();
+	}
+
+	//draw botObj
+	if (_layers.size() >= 2)
+	{
+		for (int j = 0; j < _layers[1].tileList.size(); j++)
 		{
-			_layers[i].tileList[j].Draw();
+			_layers[1].tileList[j].Draw();
 		}
 	}
+
+	//draw player
+	_player->Draw();
+
+
+	//draw topObj
+	if (_layers.size() < 3)
+		return;
+
+	for (int j = 0; j < _layers[2].tileList.size(); j++)
+	{
+		_layers[2].tileList[j].Draw();
+	}
+}
+
+Level* Level::checkExits(Uint32 dt)
+{
+	Level* returnLvl = NULL;
+
+	int indx = -1;
+
+	if (_player->IsColliding(dt, _exitTiles, &indx)) {
+		//load info for new level
+		returnLvl = new Level(_exitInfos[indx].mapName, _exitInfos[indx].spawnX, _exitInfos[indx].spawnY,
+			_graphics, _input, _screenW, _screenH);
+	}
+
+	return returnLvl;
 }

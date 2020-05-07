@@ -14,6 +14,13 @@ typedef struct Tileset {
 
 } Tileset;
 
+typedef struct TileStruct {
+
+	float x;
+	float y;
+
+} TileStruct;
+
 class Tile
 {
 private:
@@ -30,8 +37,7 @@ private:
 	int _tsPosY;
 
 	//In tile count
-	int _locX;
-	int _locY;
+	TileStruct _loc;
 
 	SDL_Rect _dstRect;
 	SDL_Rect _srcRect;
@@ -43,7 +49,7 @@ public:
 
 	~Tile();
 
-	void Update(Uint32 dt);
+	void Update(Uint32 dt, TileStruct offset);
 	void Draw();
 };
 
