@@ -26,6 +26,7 @@ int Graphics::Setup(const char* title, int h, int w)
 	}
 
 	SDL_CreateWindowAndRenderer(w, h, SDL_WINDOW_ALLOW_HIGHDPI, &_window, &_renderer);
+	//SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
 	SDL_SetWindowTitle(_window, title);
 
 	if (_window == NULL)
@@ -85,6 +86,12 @@ void Graphics::DrawBlitOnWin(SDL_Texture* src, const SDL_Rect* srcrect, SDL_Rect
 	SDL_RenderCopy(_renderer, src, srcrect, dstrect);
 }
 
+/*void Graphics::SetFade(int alpha)
+{
+	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, alpha);
+	SDL_RenderFillRect(_renderer, NULL);
+}*/
+
 void Graphics::UpdateWindow()
 {
 	SDL_RenderPresent(_renderer);
@@ -93,26 +100,6 @@ void Graphics::UpdateWindow()
 void Graphics::ClearWindow()
 {
 	SDL_RenderClear(_renderer);
-}
-
-int Graphics::Mainloop()
-{
-	SDL_Event winEvent;
-
-	while (true)
-	{
-		if (SDL_PollEvent(&winEvent))
-		{
-			if (winEvent.type == SDL_QUIT)
-			{
-				break;
-			}
-		}
-
-		SDL_UpdateWindowSurface(_window);
-	}
-
-	return EXIT_SUCCESS;
 }
 
 void Graphics::FreeSpriteSheets(SDL_Surface* bmpSurface)

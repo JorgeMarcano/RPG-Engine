@@ -20,10 +20,20 @@ void Level::LoadMap()
 	mapNode->QueryIntAttribute("tilewidth", &_tileWidth);
 	mapNode->QueryIntAttribute("tileheight", &_tileHeight);
 
+	std::map<int, Animation> animations;
+	Animation* tempAnim;
+	Frame* frame;
+	int tempID;
+
 	//Loading the tilesets
 	XMLElement* tilesetNode = mapNode->FirstChildElement("tileset");
 	XMLElement* imageNode;
+	XMLElement* animationNode;
+	XMLElement* frameNode;
 	Tileset* set;
+	int gid;
+	int tsH;
+	int tsW;
 	while (tilesetNode)
 	{
 		set = new Tileset();
@@ -39,6 +49,43 @@ void Level::LoadMap()
 
 		_tileSets.push_back(*set);
 
+		//look for animated tiles
+		animationNode = tilesetNode->FirstChildElement("tile");
+		while (animationNode)
+		{
+			animationNode->QueryIntAttribute("id", &tempID);
+
+			tempAnim = new Animation; 
+			std::vector<Frame> frames;
+
+			frameNode = animationNode->FirstChildElement("animation")->FirstChildElement("frame");
+			while (frameNode)
+			{
+				frame = new Frame;
+				frameNode->QueryIntAttribute("duration", &(frame->timeToUpdate));
+				frame->dstRect.h = _tileHeight;
+				frame->dstRect.w = _tileWidth;
+
+				frameNode->QueryIntAttribute("tileid", &gid);
+
+				SDL_QueryTexture(set->texture, NULL, NULL, &tsW, &tsH);
+
+				frame->dstRect.x = gid % (tsW / _tileWidth);
+				frame->dstRect.y = gid * _tileWidth / tsW;
+
+				frames.push_back(*frame);
+				frameNode = frameNode->NextSiblingElement("frame");
+			}
+
+			tempAnim->frames = frames;
+			tempAnim->frameCount = frames.size();
+			tempAnim->name = std::string(animationNode->Attribute("id"));
+
+			animations[tempID] = *tempAnim;
+
+			animationNode = animationNode->NextSiblingElement("tile");
+		}
+
 		tilesetNode = tilesetNode->NextSiblingElement("tileset");
 	}
 
@@ -48,14 +95,12 @@ void Level::LoadMap()
 	XMLElement* tileNode;
 	Layer* layer;
 	int tileCount = 0;
-	int gid;
 	Tileset tls;
 	int xPos;
 	int yPos;
 	int xts;
 	int yts;
-	int tsH;
-	int tsW;
+	Tile* tempTile;
 	TileStruct* tileStruct;
 	while (layersNode)
 	{
@@ -112,7 +157,6 @@ void Level::LoadMap()
 			while (tileNode)
 			{
 				//if gid is 0, do not draw
-
 				if (tileNode->QueryIntAttribute("gid", &gid) == XML_SUCCESS && gid != 0) {
 					//get tileset
 					for (int i = 0; i < _tileSets.size(); i++)
@@ -134,7 +178,16 @@ void Level::LoadMap()
 					xts = gid % (tsW / _tileWidth);
 					yts = gid * _tileWidth / tsW;
 
-					layer->tileList.push_back(Tile(tls.texture, _graphics, _tileWidth, _tileWidth, xts, yts, xPos, yPos));
+					if (animations.count(gid) != 0)
+					{
+						tempTile = new AnimatedTile(tls.texture, _graphics, _tileWidth, _tileWidth, xts, yts, xPos, yPos);
+						((AnimatedTile*)tempTile)->AddAnimation(animations.at(gid));
+						((AnimatedTile*)tempTile)->StartAnimation(animations.at(gid).name);
+					}
+					else
+						tempTile = new Tile(tls.texture, _graphics, _tileWidth, _tileWidth, xts, yts, xPos, yPos);
+					
+					layer->tileList.push_back(tempTile);
 				}
 
 				tileCount++;
@@ -225,7 +278,7 @@ void Level::Update(Uint32 dt)
 	{
 		for (int j = 0; j < _layers[i].tileList.size(); j++)
 		{
-			_layers[i].tileList[j].Update(dt, offset);
+			_layers[i].tileList[j]->Update(dt, offset);
 		}
 	}
 }
@@ -240,7 +293,7 @@ void Level::Draw()
 
 	for (int j = 0; j < _layers[0].tileList.size(); j++)
 	{
-		_layers[0].tileList[j].Draw();
+		_layers[0].tileList[j]->Draw();
 	}
 
 	//draw botObj
@@ -248,7 +301,7 @@ void Level::Draw()
 	{
 		for (int j = 0; j < _layers[1].tileList.size(); j++)
 		{
-			_layers[1].tileList[j].Draw();
+			_layers[1].tileList[j]->Draw();
 		}
 	}
 
@@ -262,7 +315,7 @@ void Level::Draw()
 
 	for (int j = 0; j < _layers[2].tileList.size(); j++)
 	{
-		_layers[2].tileList[j].Draw();
+		_layers[2].tileList[j]->Draw();
 	}
 }
 

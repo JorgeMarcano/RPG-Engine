@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.2" tiledversion="1.3.4" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="4">
+<map version="1.2" tiledversion="1.3.4" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="7">
  <tileset firstgid="1" name="basic" tilewidth="32" tileheight="32" tilecount="480" columns="8">
   <image source="../tileset/green_in.png" width="256" height="1920"/>
  </tileset>
@@ -618,8 +618,8 @@
    <tile/>
    <tile/>
    <tile/>
-   <tile/>
-   <tile/>
+   <tile gid="308"/>
+   <tile gid="308"/>
    <tile/>
    <tile/>
    <tile/>
@@ -1426,8 +1426,8 @@
    <tile/>
    <tile/>
    <tile/>
-   <tile/>
-   <tile/>
+   <tile gid="1"/>
+   <tile gid="1"/>
    <tile/>
    <tile/>
    <tile/>
@@ -1627,6 +1627,9 @@
    <point/>
   </object>
   <object id="3" name="2,10,19" x="331" y="21">
+   <point/>
+  </object>
+  <object id="4" name="2,10,10" x="47" y="595">
    <point/>
   </object>
  </objectgroup>

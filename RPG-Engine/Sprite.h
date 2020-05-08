@@ -29,11 +29,14 @@ public:
 	Sprite();
 	Sprite(Graphics* graph, const char* filename, int sourceX, int sourceY,
 			int width, int height, float initX, float initY);
+	Sprite(Graphics* graph, const char* filename, int sourceX, int sourceY,
+			float initX, float initY);
 
 	virtual ~Sprite();
 
 	virtual void Update();
 
 	void Draw(int x, int y);
+	void DrawFull();
 };
 

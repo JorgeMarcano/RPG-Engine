@@ -5,6 +5,7 @@
 #include "Graphics.h"
 #include "Input.h"
 #include "Tile.h"
+#include "AnimatedTile.h"
 #include "tinyxml2.h"
 #include "Player.h"
 

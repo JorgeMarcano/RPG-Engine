@@ -6,6 +6,7 @@
 #include "AnimatedSprite.h"
 #include "Player.h"
 #include "Level.h"
+#include "Menu.h"
 
 #define WIDTH	640
 #define HEIGHT	480
@@ -23,10 +24,17 @@ private:
 	Input* _inputs;
 
 	Level* _level;
+	Level* _nextLvl;
+
+	bool _inMenu;
+
+	Menu* _menu;
 
 public:
 
 	Game();
 	~Game();
+
+	void LoadLevel(Level* lvl);
 };
 

@@ -34,10 +34,10 @@ public:
 
 	void DrawBlitOnWin(SDL_Texture* src, const SDL_Rect* srcrect, SDL_Rect* dstrect);
 
+	//void SetFade(int alpha);
+
 	void UpdateWindow();
 	void ClearWindow();
-
-	int Mainloop();
 
 	void FreeSpriteSheets(SDL_Surface* bmpSurface);
 

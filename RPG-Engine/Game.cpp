@@ -2,8 +2,6 @@
 
 void Game::GameLoop()
 {
-	_level = new Level("1", 6, 12, _graphics, _inputs, WIDTH, HEIGHT);
-
 	SDL_Event event;
 
 	Uint32 lastUpdateTime = SDL_GetTicks();
@@ -13,8 +11,6 @@ void Game::GameLoop()
 	bool looping = true;
 	while (looping)
 	{
-		_inputs->BeginNewFrame();
-
 		if (SDL_PollEvent(&event))
 		{
 			switch (event.type)
@@ -38,12 +34,14 @@ void Game::GameLoop()
 
 		currentTime = SDL_GetTicks();
 		currentFrameDuration = currentTime - lastUpdateTime;
-		if (currentFrameDuration > 8)
+		if (currentFrameDuration > 16)
 		{
 			lastUpdateTime = currentTime;
 
 			Update(currentFrameDuration);
 			Draw();
+
+			_inputs->BeginNewFrame();
 		}
 	}
 }
@@ -52,20 +50,35 @@ void Game::Draw()
 {
 	_graphics->ClearWindow();
 
-	_level->Draw();
+	if (_inMenu)
+	{
+		_menu->Draw();
+	}
+	else
+	{
+		_level->Draw();
+	}
 
 	_graphics->UpdateWindow();
 }
 
 void Game::Update(Uint32 dt)
 {
-	_level->Update(dt);
-
-	Level* newLvl = _level->checkExits(dt);
-	if (newLvl != NULL)
+	if (_inMenu)
 	{
-		_level = newLvl;
+		_menu->Update(dt);
+	}
+	else
+	{
 		_level->Update(dt);
+
+		_nextLvl = _level->checkExits(dt);
+		if (_nextLvl != NULL)
+		{
+			_level = _nextLvl;
+			_level->Update(dt);
+			_nextLvl = NULL;
+		}
 	}
 }
 
@@ -75,10 +88,25 @@ Game::Game()
 
 	_inputs = new Input();
 
+	_nextLvl = NULL;
+
+	_inMenu = true;
+
 	if (_graphics->Setup("Game", HEIGHT, WIDTH) == EXIT_SUCCESS)
+	{
+		_menu = new Menu(_graphics, this, _inputs, "content/menu/bg.png", "content/menu/arrow.png", 100, 100);
+		_menu->AddItem(100, 100);
+		_menu->AddItem(100, 200);
 		GameLoop();
+	}
 }
 
 Game::~Game()
 {
+}
+
+void Game::LoadLevel(Level* lvl)
+{
+	_level = lvl;
+	_inMenu = false;
 }

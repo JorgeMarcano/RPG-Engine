@@ -33,23 +33,25 @@ private:
 	int _height;
 
 	//In tile count
-	int _tsPosX;
-	int _tsPosY;
-
-	//In tile count
 	TileStruct _loc;
 
 	SDL_Rect _dstRect;
 	SDL_Rect _srcRect;
+
+protected:
+
+	//In tile count
+	int _tsPosX;
+	int _tsPosY;
 
 public:
 
 	Tile();
 	Tile(SDL_Texture* texture, Graphics* graphics, int w, int h, int tsX, int tsY, int x, int y);
 
-	~Tile();
+	virtual ~Tile();
 
-	void Update(Uint32 dt, TileStruct offset);
+	virtual void Update(Uint32 dt, TileStruct offset);
 	void Draw();
 };
 
@@ -58,7 +60,7 @@ typedef struct Layer {
 	int width;
 	int height;
 
-	std::vector<Tile> tileList;
+	std::vector<Tile*> tileList;
 
 } Layer;
 
